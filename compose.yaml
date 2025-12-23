@@ -1,0 +1,80 @@
+version: "3.9"
+
+services:
+  db:
+    image: mysql:8.0
+    container_name: gesture-mysql
+    restart: unless-stopped
+    networks:
+      - back_net
+    environment:
+      MYSQL_ROOT_PASSWORD_FILE: /run/secrets/db_root_password
+      MYSQL_PASSWORD_FILE: /run/secrets/db_password
+      MYSQL_DATABASE: gesture_app
+      MYSQL_USER: gesture_user
+    volumes:
+      - db_data:/var/lib/mysql
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    secrets:
+      - db_root_password
+      - db_password
+
+  backend:
+    build:
+      context: ./backend
+      target: prod
+    container_name: gesture-backend
+    restart: unless-stopped
+    networks:
+      - front_net
+      - back_net
+    environment:
+      PORT: 4000
+      DB_HOST: db
+      DB_PORT: 3306
+      DB_USER: gesture_user
+      DB_PASSWORD_FILE: /run/secrets/db_password
+      DB_NAME: gesture_app
+    ports:
+      - "4000:4000"
+    depends_on:
+      - db
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://localhost:4000/api/health || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    secrets:
+      - db_password
+
+  frontend:
+    build:
+      context: ./frontend
+      args:
+        VITE_API_URL: http://localhost:4000
+    container_name: gesture-frontend
+    restart: unless-stopped
+    networks:
+      - front_net
+    ports:
+      - "5173:80"
+    depends_on:
+      - backend
+
+
+volumes:
+  db_data:
+
+networks:
+  front_net:
+  back_net:
+
+secrets:
+  db_root_password:
+    file: ./secrets/db_root_password.txt
+  db_password:
+    file: ./secrets/db_password.txt
