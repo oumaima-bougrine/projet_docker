@@ -102,7 +102,28 @@ cd <nom-du-projet>
 
 ---
 
-### 2️ Lancer l’application
+### 2️ Création des fichiers de secrets
+
+Dans le dossier `secrets/`, créer les fichiers suivants :
+
+- `db_root_password.txt`
+- `db_password.txt`
+
+Ces fichiers doivent contenir **uniquement le mot de passe**, sans espaces ni retours à la ligne.
+
+Exemple de contenu :
+
+db_root_password.txt
+```txt
+rootpassword
+```
+
+db_password.txt
+```txt
+userpassword
+```
+
+### 3 Lancer l’application
 
 ```bash
 docker compose up --build
@@ -110,7 +131,7 @@ docker compose up --build
 
 ---
 
-### 3️ Accès
+### 4 Accès
 
 - Frontend : http://localhost  
 - Backend : http://localhost:4000  
